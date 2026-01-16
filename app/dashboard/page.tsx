@@ -5,13 +5,35 @@ import { lusitana } from '@/app/ui/font';
 import { fetchLatestInvoices, fetchRevenue } from '@/app/lib/data';
  
 export default async function Page() {
-  const revenue = await fetchRevenue();
-  const latestInvoices = await fetchLatestInvoices();
+  let revenue: any[] = [];
+  let latestInvoices: any[] = [];
+  let error: string | null = null;
+
+  try {
+    // 并行获取数据
+    const [revenueData, invoicesData] = await Promise.all([
+      fetchRevenue(),
+      fetchLatestInvoices()
+    ]);
+    revenue = revenueData;
+    latestInvoices = invoicesData;
+  } catch (err) {
+    error = '无法连接到数据库。请检查您的数据库配置或稍后重试。';
+    console.error('Dashboard数据获取错误:', err);
+  }
+
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Dashboard
       </h1>
+      
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
+      
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* <Card title="Collected" value={totalPaidInvoices} type="collected" /> */}
         {/* <Card title="Pending" value={totalPendingInvoices} type="pending" /> */}
